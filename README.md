@@ -33,7 +33,7 @@ A hands-on cybersecurity training platform featuring interactive CTF challenges,
 
 ### Challenge System
 
-- 8 categories: Web Exploitation, Cryptography, Forensics, Reverse Engineering, Binary Exploitation, Network Security, OSINT, Miscellaneous
+- Built-in categories: Web Exploitation, Cryptography, Forensics, Network Security (with support for Reverse Engineering, Binary Exploitation, OSINT, and more)
 - 4 difficulty levels (Beginner to Expert) with scaling point values
 - Multiple validation strategies: flag matching, SQL result checks, file content verification, command output validation
 - Progressive hint system with point-cost tradeoffs
