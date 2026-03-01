@@ -41,12 +41,10 @@ export function useSandbox(challengeId: string): UseSandboxReturn {
     setLoading(true);
     setError(null);
 
-    // If re-launching after expiry, stop the old session first
     if (session && (status === "EXPIRED" || status === "COMPLETED")) {
       try {
         await stopSandbox(session.sessionId);
       } catch {
-        // old session may already be cleaned up
       }
       setSession(null);
     }
@@ -116,7 +114,6 @@ export function useSandbox(challengeId: string): UseSandboxReturn {
           startTimer(existing.expiresAt);
         }
       } catch {
-        // no existing session
       }
     }
 

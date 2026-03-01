@@ -142,7 +142,6 @@ export function AuthProvider({ children }: { children: ReactNode }): ReactNode {
       const user = await getMe();
       setState((prev) => ({ ...prev, user }));
     } catch {
-      // silently ignore – user data will refresh on next navigation
     }
   }, []);
 

@@ -96,7 +96,6 @@ export async function submitAnswer(
   });
 
   if (correct) {
-    // Check if user already solved this challenge to prevent double-counting
     const existingProgress = await prisma.progress.findUnique({
       where: { userId_challengeId: { userId, challengeId } },
     });
@@ -127,7 +126,6 @@ export async function submitAnswer(
       },
     });
 
-    // Only increment profile score on first solve
     if (!alreadySolved) {
       await prisma.profile.updateMany({
         where: { userId },

@@ -148,7 +148,6 @@ export async function handleMe(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  // Calculate rank dynamically: count profiles with a higher score + 1
   let rank = 0;
   if (user.profile) {
     const higherCount = await prisma.profile.count({

@@ -64,7 +64,6 @@ export async function attachTerminal(
     try {
       stream.write(data as Buffer);
     } catch {
-      // stream may be closed
     }
   });
 
@@ -85,7 +84,6 @@ export function detachTerminal(sessionId: string): void {
   try {
     session.execStream.destroy();
   } catch {
-    // ignore cleanup errors
   }
 
   activeSessions.delete(sessionId);

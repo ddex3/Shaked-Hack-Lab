@@ -71,7 +71,6 @@ function initDatabase() {
   db.close();
 }
 
-// INTENTIONALLY VULNERABLE: SQL Injection in login
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
 
@@ -100,7 +99,6 @@ app.post("/login", (req, res) => {
   }
 });
 
-// INTENTIONALLY VULNERABLE: SQL Injection in search
 app.get("/search", (req, res) => {
   const { q } = req.query;
 

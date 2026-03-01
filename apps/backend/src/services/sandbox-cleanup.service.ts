@@ -42,7 +42,6 @@ export async function cleanupExpiredSessions(): Promise<void> {
         try {
           await container.stop({ t: 2 });
         } catch {
-          // already stopped
         }
         await container.remove({ force: true });
       }
@@ -85,12 +84,10 @@ async function cleanupOrphanContainers(): Promise<void> {
           await container.remove({ force: true });
           logger.info({ containerId: info.Id }, "Orphan container removed");
         } catch {
-          // ignore removal errors
         }
       }
     }
   } catch {
-    // Docker may not be available in dev
   }
 }
 
@@ -105,7 +102,6 @@ export async function cleanupAllSessions(): Promise<void> {
         const container = docker.getContainer(session.containerId);
         await container.remove({ force: true });
       } catch {
-        // ignore
       }
     }
 

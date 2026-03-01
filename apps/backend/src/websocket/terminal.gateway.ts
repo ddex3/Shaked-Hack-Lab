@@ -10,7 +10,6 @@ export function initWebSocketServer(httpServer: HttpServer): WebSocketServer {
     path: "/ws/terminal",
   });
 
-  // Ping all connected clients every 30s to keep connections alive
   const pingInterval = setInterval(() => {
     wss.clients.forEach((ws) => {
       if ((ws as any)._isAlive === false) {

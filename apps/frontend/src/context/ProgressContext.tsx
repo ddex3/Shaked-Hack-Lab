@@ -36,14 +36,13 @@ export function ProgressProvider({ children }: { children: ReactNode }): ReactNo
   const { user, refreshUser } = useAuth();
   const prevXpRef = useRef<number | null>(null);
 
-  // Sync score to backend on mount (for previously unsynced XP) and whenever totalXp changes
   useEffect(() => {
     if (!user) return;
     if (prevXpRef.current === state.totalXp) return;
     prevXpRef.current = state.totalXp;
     syncScore(state.totalXp)
       .then(() => refreshUser())
-      .catch(() => { /* silently ignore sync failures */ });
+      .catch(() => {});
   }, [state.totalXp, user, refreshUser]);
 
   const completeChallenge = useCallback(

@@ -54,7 +54,6 @@ export async function startSession(
 
   const needsShell = challenge.category !== "WEB_EXPLOITATION";
 
-  // Convert envVars JSON object to Docker Env format ["KEY=VALUE", ...]
   const envList: string[] = [];
   if (config.envVars && typeof config.envVars === "object") {
     for (const [key, value] of Object.entries(config.envVars as Record<string, string>)) {
@@ -232,7 +231,6 @@ async function destroyContainer(containerId: string | null): Promise<void> {
     try {
       await container.stop({ t: 2 });
     } catch {
-      // container may already be stopped
     }
     await container.remove({ force: true });
   } catch (err) {
@@ -258,7 +256,6 @@ async function waitForServer(containerId: string, port: number, retries: number)
       const output = Buffer.concat(chunks).toString("utf-8").trim();
       if (output.includes("200")) return;
     } catch {
-      // server not ready yet
     }
     await new Promise((r) => setTimeout(r, 500));
   }

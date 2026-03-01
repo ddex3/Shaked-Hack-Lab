@@ -70,7 +70,6 @@ export function LabObjectiveTracker({
           [objectiveId]: [...(prev[objectiveId] ?? []), result.hint],
         }));
       } catch {
-        // silently fail
       }
     },
     [revealedHints, objectives, onHint]

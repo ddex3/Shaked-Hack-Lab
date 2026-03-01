@@ -56,10 +56,8 @@ export function useTerminal(sessionId: string | null): UseTerminalReturn {
     terminalInstance.current = term;
     fitAddonRef.current = fitAddon;
 
-    // Ctrl+Shift+C = copy, Ctrl+Shift+V = paste
     term.attachCustomKeyEventHandler((e: KeyboardEvent) => {
       if (e.type === "keydown") {
-        // Ctrl+Shift+C -> copy selection
         if (e.ctrlKey && e.shiftKey && e.key === "C") {
           const sel = term.getSelection();
           if (sel) {
@@ -67,7 +65,6 @@ export function useTerminal(sessionId: string | null): UseTerminalReturn {
           }
           return false;
         }
-        // Ctrl+Shift+V -> paste from clipboard
         if (e.ctrlKey && e.shiftKey && e.key === "V") {
           navigator.clipboard.readText().then((text) => {
             if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -76,7 +73,6 @@ export function useTerminal(sessionId: string | null): UseTerminalReturn {
           });
           return false;
         }
-        // Ctrl+C when text is selected -> copy instead of SIGINT
         if (e.ctrlKey && !e.shiftKey && e.key === "c") {
           const sel = term.getSelection();
           if (sel) {
@@ -89,12 +85,10 @@ export function useTerminal(sessionId: string | null): UseTerminalReturn {
       return true;
     });
 
-    // Auto-copy on mouse selection
     term.onSelectionChange(() => {
       const sel = term.getSelection();
       if (sel) {
         navigator.clipboard.writeText(sel).catch(() => {
-          // clipboard API may not be available
         });
       }
     });
@@ -133,7 +127,6 @@ export function useTerminal(sessionId: string | null): UseTerminalReturn {
       }
     });
 
-    // Right-click to paste
     const handleContextMenu = (e: MouseEvent) => {
       e.preventDefault();
       navigator.clipboard.readText().then((text) => {
@@ -141,7 +134,6 @@ export function useTerminal(sessionId: string | null): UseTerminalReturn {
           wsRef.current.send(text);
         }
       }).catch(() => {
-        // clipboard API may not be available
       });
     };
 
