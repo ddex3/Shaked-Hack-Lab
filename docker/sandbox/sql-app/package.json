@@ -1,0 +1,9 @@
+{
+  "name": "sql-injection-sandbox",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "express": "^4.21.0",
+    "better-sqlite3": "^11.6.0"
+  }
+}

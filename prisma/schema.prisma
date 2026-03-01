@@ -1,0 +1,434 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum ChallengeDifficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+enum ChallengeCategory {
+  WEB_EXPLOITATION
+  CRYPTOGRAPHY
+  REVERSE_ENGINEERING
+  FORENSICS
+  BINARY_EXPLOITATION
+  NETWORK_SECURITY
+  OSINT
+  MISCELLANEOUS
+}
+
+enum SandboxType {
+  NONE
+  DOCKER
+  BROWSER
+  REMOTE_VM
+}
+
+enum SandboxStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  EXPIRED
+  ERROR
+}
+
+enum ValidationType {
+  FLAG_MATCH
+  SQL_RESULT_CHECK
+  FILE_CONTENT_CHECK
+  COMMAND_OUTPUT_CHECK
+  MULTI_STEP
+}
+
+model User {
+  id             String      @id @default(uuid()) @db.Uuid
+  username       String      @unique @db.VarChar(32)
+  email          String      @unique @db.VarChar(255)
+  passwordHash   String      @db.VarChar(255)
+  role           UserRole    @default(USER)
+  failedAttempts Int         @default(0)
+  lockedUntil    DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  profile         Profile?
+  progress        Progress[]
+  submissions     Submission[]
+  sessions        Session[]
+  sandboxSessions SandboxSession[]
+  hintUsages      HintUsage[]
+  courseProgress   UserCourseProgress[]
+  lessonProgress   UserLessonProgress[]
+  labAttempts      UserLabAttempt[]
+
+  @@index([username])
+  @@index([email])
+  @@map("users")
+}
+
+model Profile {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @unique @db.Uuid
+  displayName String   @db.VarChar(64)
+  avatarUrl   String?  @db.VarChar(512)
+  bio         String?  @db.VarChar(500)
+  focusTrack  String   @db.VarChar(64)
+  score       Int      @default(0)
+  rank        Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+model Progress {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @db.Uuid
+  challengeId  String   @db.Uuid
+  completed    Boolean  @default(false)
+  attempts     Int      @default(0)
+  bestScore    Int      @default(0)
+  completedAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenge    Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, challengeId])
+  @@map("progress")
+}
+
+model Challenge {
+  id            String              @id @default(uuid()) @db.Uuid
+  title         String              @db.VarChar(128)
+  description   String              @db.Text
+  category      ChallengeCategory
+  difficulty    ChallengeDifficulty
+  sandboxType   SandboxType         @default(NONE)
+  points        Int                 @default(100)
+  solutionHash  String              @db.VarChar(255)
+  instructions  String              @db.Text
+  solveCount    Int                 @default(0)
+  active        Boolean             @default(true)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  progress        Progress[]
+  submissions     Submission[]
+  config          ChallengeConfig?
+  sandboxSessions SandboxSession[]
+  hints           ChallengeHint[]
+  validation      ChallengeValidation?
+
+  @@index([category])
+  @@index([difficulty])
+  @@map("challenges")
+}
+
+model Submission {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @db.Uuid
+  challengeId String    @db.Uuid
+  answer      String    @db.VarChar(512)
+  correct     Boolean   @default(false)
+  score       Int       @default(0)
+  submittedAt DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenge   Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([challengeId])
+  @@map("submissions")
+}
+
+model Session {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @db.Uuid
+  refreshToken String   @unique @db.VarChar(512)
+  deviceInfo   String?  @db.VarChar(512)
+  ipAddress    String?  @db.VarChar(45)
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([refreshToken])
+  @@map("sessions")
+}
+
+model ChallengeConfig {
+  id              String   @id @default(uuid()) @db.Uuid
+  challengeId     String   @unique @db.Uuid
+  dockerImage     String   @db.VarChar(255)
+  memoryLimitMb   Int      @default(64)
+  cpuLimit        Float    @default(0.5)
+  timeoutSeconds  Int      @default(300)
+  networkDisabled Boolean  @default(true)
+  whitelistedCmds String[] @default([])
+  initScript      String?  @db.Text
+  envVars         Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  challenge       Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@map("challenge_configs")
+}
+
+model SandboxSession {
+  id           String        @id @default(uuid()) @db.Uuid
+  userId       String        @db.Uuid
+  challengeId  String        @db.Uuid
+  containerId  String?       @db.VarChar(128)
+  status       SandboxStatus @default(PENDING)
+  startedAt    DateTime      @default(now())
+  expiresAt    DateTime
+  terminatedAt DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenge    Challenge     @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([challengeId])
+  @@index([status])
+  @@index([expiresAt])
+  @@map("sandbox_sessions")
+}
+
+model ChallengeHint {
+  id          String      @id @default(uuid()) @db.Uuid
+  challengeId String      @db.Uuid
+  orderIndex  Int
+  content     String      @db.Text
+  pointCost   Int         @default(10)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  challenge   Challenge   @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  usages      HintUsage[]
+
+  @@unique([challengeId, orderIndex])
+  @@map("challenge_hints")
+}
+
+model HintUsage {
+  id          String        @id @default(uuid()) @db.Uuid
+  userId      String        @db.Uuid
+  hintId      String        @db.Uuid
+  pointsSpent Int
+  unlockedAt  DateTime      @default(now())
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hint        ChallengeHint @relation(fields: [hintId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, hintId])
+  @@index([userId])
+  @@map("hint_usages")
+}
+
+model ChallengeValidation {
+  id             String         @id @default(uuid()) @db.Uuid
+  challengeId    String         @unique @db.Uuid
+  validationType ValidationType
+  validationData Json
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  challenge      Challenge      @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@map("challenge_validations")
+}
+
+enum CourseStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum LabType {
+  LINUX_TERMINAL
+  WINDOWS_SIMULATION
+  BRUTE_FORCE_SIMULATION
+}
+
+enum LabObjectiveType {
+  COMMAND_EXECUTION
+  FILE_DISCOVERY
+  PERMISSION_CHECK
+  LOG_ANALYSIS
+  PROCESS_IDENTIFICATION
+  RATE_LIMIT_CONFIG
+  PASSWORD_ANALYSIS
+}
+
+model TrainingCourse {
+  id                String       @id @default(uuid()) @db.Uuid
+  slug              String       @unique @db.VarChar(128)
+  title             String       @db.VarChar(256)
+  description       String       @db.Text
+  category          String       @db.VarChar(64)
+  level             String       @db.VarChar(32)
+  estimatedDuration String       @db.VarChar(32)
+  status            CourseStatus @default(ACTIVE)
+  orderIndex        Int          @default(0)
+  maxXp             Int          @default(0)
+  certificateFlag   Boolean      @default(true)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  modules           TrainingModule[]
+  userProgress      UserCourseProgress[]
+
+  @@index([slug])
+  @@index([status])
+  @@index([category])
+  @@map("training_courses")
+}
+
+model TrainingModule {
+  id          String   @id @default(uuid()) @db.Uuid
+  courseId     String   @db.Uuid
+  title       String   @db.VarChar(256)
+  description String   @db.Text
+  orderIndex  Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  course      TrainingCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons     TrainingLesson[]
+
+  @@unique([courseId, orderIndex])
+  @@index([courseId])
+  @@map("training_modules")
+}
+
+model TrainingLesson {
+  id          String   @id @default(uuid()) @db.Uuid
+  moduleId    String   @db.Uuid
+  title       String   @db.VarChar(256)
+  content     Json
+  orderIndex  Int
+  maxXp       Int      @default(25)
+  minXp       Int      @default(5)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  module      TrainingModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  quizzes     TrainingQuiz[]
+  labs        TrainingLab[]
+  userProgress UserLessonProgress[]
+
+  @@unique([moduleId, orderIndex])
+  @@index([moduleId])
+  @@map("training_lessons")
+}
+
+model TrainingLab {
+  id              String          @id @default(uuid()) @db.Uuid
+  lessonId        String          @db.Uuid
+  title           String          @db.VarChar(256)
+  description     String          @db.Text
+  labType         LabType
+  objectives      Json
+  maxXp           Int             @default(50)
+  minXp           Int             @default(10)
+  hintPenalty     Int             @default(5)
+  timeoutSeconds  Int             @default(300)
+  sandboxConfig   Json
+  orderIndex      Int
+  active          Boolean         @default(true)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  lesson          TrainingLesson  @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  attempts        UserLabAttempt[]
+
+  @@unique([lessonId, orderIndex])
+  @@index([lessonId])
+  @@index([labType])
+  @@map("training_labs")
+}
+
+model TrainingQuiz {
+  id            String   @id @default(uuid()) @db.Uuid
+  lessonId      String   @db.Uuid
+  question      String   @db.Text
+  options       Json
+  correctAnswer String   @db.VarChar(512)
+  explanation   String   @db.Text
+  xpReward      Int      @default(15)
+  orderIndex    Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  lesson        TrainingLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([lessonId, orderIndex])
+  @@index([lessonId])
+  @@map("training_quizzes")
+}
+
+model UserCourseProgress {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String   @db.Uuid
+  courseId         String   @db.Uuid
+  started         Boolean  @default(true)
+  completed       Boolean  @default(false)
+  totalXpEarned   Int      @default(0)
+  completedAt     DateTime?
+  certificateHash String?  @db.VarChar(128)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course          TrainingCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@index([userId])
+  @@index([courseId])
+  @@map("user_course_progress")
+}
+
+model UserLessonProgress {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  lessonId    String   @db.Uuid
+  completed   Boolean  @default(false)
+  xpEarned    Int      @default(0)
+  attempts    Int      @default(0)
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson      TrainingLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@index([userId])
+  @@index([lessonId])
+  @@map("user_lesson_progress")
+}
+
+model UserLabAttempt {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String   @db.Uuid
+  labId           String   @db.Uuid
+  completed       Boolean  @default(false)
+  xpEarned        Int      @default(0)
+  hintsUsed       Int      @default(0)
+  failedAttempts  Int      @default(0)
+  objectivesState Json
+  startedAt       DateTime @default(now())
+  completedAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lab             TrainingLab @relation(fields: [labId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([labId])
+  @@index([userId, labId])
+  @@map("user_lab_attempts")
+}

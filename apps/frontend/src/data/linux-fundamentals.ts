@@ -1,0 +1,446 @@
+import type { Course } from "../types/course.types";
+
+export const LINUX_FUNDAMENTALS_COURSE: Course = {
+  id: "linux-fundamentals",
+  title: "Linux Fundamentals",
+  description: "Learn the essential Linux skills every cybersecurity professional needs. Master the command line, file operations, permissions, process management, and log analysis on Linux systems.",
+  level: "Beginner",
+  category: "Linux Fundamentals",
+  estimatedDuration: "6 hours",
+  sections: [
+    {
+      id: "sec-linux-basics",
+      title: "Linux Basics",
+      lessons: [
+        {
+          id: "lesson-linux-filesystem",
+          title: "The Linux Filesystem Structure",
+          order: 1,
+          content: [
+            { type: "heading", content: "Understanding the Linux Filesystem Hierarchy" },
+            { type: "text", content: "Linux organizes all files and directories into a single tree structure rooted at /. Unlike Windows, which uses drive letters like C:\\ and D:\\, Linux has one unified hierarchy. Every file, device, and process is represented somewhere in this tree. Understanding this layout is the first step to navigating any Linux system." },
+            { type: "list", items: [
+              "/ - The root directory, the top of the entire filesystem",
+              "/home - Contains personal directories for each user (e.g., /home/alice)",
+              "/etc - System-wide configuration files (e.g., /etc/passwd, /etc/ssh/sshd_config)",
+              "/var - Variable data such as logs (/var/log), mail, and spool files",
+              "/tmp - Temporary files, typically cleared on reboot",
+              "/bin and /usr/bin - Essential user command binaries (ls, cp, cat)",
+              "/sbin and /usr/sbin - System administration binaries (iptables, fdisk)",
+              "/opt - Optional add-on application software packages",
+            ] },
+            { type: "alert", variant: "info", content: "In Linux, everything is a file. Hardware devices are represented as files in /dev, running processes have entries in /proc, and even system information is exposed through the /sys filesystem." },
+          ],
+          challenges: [
+            {
+              id: "ch-linux-fs-1", type: "multiple-choice", difficulty: "Beginner", xpReward: 20,
+              question: "Which directory is the root of the entire Linux filesystem hierarchy?",
+              options: ["/root", "/home", "/", "/bin"], correctAnswer: "/",
+              explanation: "The / directory is the top-level root of the filesystem tree. Everything else branches from it. Note that /root is the home directory for the root user, which is different from / itself.",
+            },
+            {
+              id: "ch-linux-fs-2", type: "multiple-choice", difficulty: "Beginner", xpReward: 20,
+              question: "Where are system-wide configuration files typically stored on a Linux system?",
+              options: ["/home", "/var", "/etc", "/opt"], correctAnswer: "/etc",
+              explanation: "/etc holds system configuration files such as /etc/passwd for user accounts, /etc/fstab for filesystem mounts, and /etc/ssh/sshd_config for SSH server settings.",
+            },
+            {
+              id: "ch-linux-fs-3", type: "true-false", difficulty: "Beginner", xpReward: 15,
+              question: "In Linux, hardware devices are represented as files under the /dev directory.",
+              options: ["True", "False"], correctAnswer: "True",
+              explanation: "Linux follows the 'everything is a file' philosophy. Block devices like hard drives appear as /dev/sda, /dev/sdb, etc., and character devices like terminals appear as /dev/tty.",
+            },
+          ],
+        },
+        {
+          id: "lesson-linux-paths",
+          title: "Absolute and Relative Paths",
+          order: 2,
+          content: [
+            { type: "heading", content: "Navigating with Absolute and Relative Paths" },
+            { type: "text", content: "A path specifies the location of a file or directory. Linux supports two types of paths. An absolute path starts from the root directory / and specifies the full location regardless of your current position. A relative path is interpreted from your current working directory and does not begin with /." },
+            { type: "code", language: "bash", content: "# Absolute path - always starts from /\ncat /etc/hostname\n\n# Relative path - relative to the current working directory\ncat Documents/notes.txt\n\n# Special relative path symbols:\n#   .   refers to the current directory\n#   ..  refers to the parent directory\n#   ~   expands to your home directory\n\ncd ..          # move up one directory\ncd ./scripts   # enter the scripts folder inside current directory\ncd ~/Downloads # go to your Downloads folder in your home directory" },
+            { type: "text", content: "When troubleshooting or writing scripts, always use absolute paths. Relative paths depend on the current working directory, which can change and lead to errors. In interactive shell sessions, however, relative paths save typing and are perfectly fine." },
+            { type: "alert", variant: "warning", content: "The ~ shortcut only works in the shell. In configuration files and when passing paths to some programs, you must use the full absolute path like /home/username instead of ~." },
+          ],
+          challenges: [
+            {
+              id: "ch-linux-paths-1", type: "multiple-choice", difficulty: "Beginner", xpReward: 20,
+              question: "Which of the following is an absolute path?",
+              options: ["Documents/report.txt", "../etc/passwd", "/var/log/syslog", "./scripts/run.sh"], correctAnswer: "/var/log/syslog",
+              explanation: "An absolute path always starts with / and specifies the full path from the root of the filesystem. /var/log/syslog begins with / so it is absolute. The others are relative paths.",
+            },
+            {
+              id: "ch-linux-paths-2", type: "multiple-choice", difficulty: "Beginner", xpReward: 20,
+              question: "What does the .. symbol represent in a Linux file path?",
+              options: ["The current directory", "The root directory", "The parent directory", "The home directory"], correctAnswer: "The parent directory",
+              explanation: "The double dot .. always refers to the parent of the current directory. For example, if you are in /home/alice, then .. refers to /home.",
+            },
+            {
+              id: "ch-linux-paths-3", type: "true-false", difficulty: "Beginner", xpReward: 15,
+              question: "The tilde character ~ always expands to /root on a Linux system.",
+              options: ["True", "False"], correctAnswer: "False",
+              explanation: "The ~ character expands to the home directory of the currently logged-in user. For a regular user alice, ~ expands to /home/alice. It only expands to /root when you are logged in as the root user.",
+            },
+          ],
+        },
+        {
+          id: "lesson-linux-navigation",
+          title: "Navigating with ls, cd, and pwd",
+          order: 3,
+          content: [
+            { type: "heading", content: "Essential Navigation Commands" },
+            { type: "text", content: "The three most fundamental commands for moving around a Linux filesystem are pwd (print working directory), cd (change directory), and ls (list directory contents). These are the commands you will use most frequently in any Linux session." },
+            { type: "code", language: "bash", content: "# pwd - Display your current location in the filesystem\npwd\n# Output: /home/alice\n\n# cd - Change to a different directory\ncd /var/log       # go to /var/log\ncd                # go to your home directory (no argument)\ncd -              # go back to the previous directory\n\n# ls - List files and directories\nls                # basic listing\nls -l             # long format: permissions, owner, size, date\nls -la            # long format including hidden files (dotfiles)\nls -lh            # long format with human-readable file sizes\nls -lt            # long format sorted by modification time" },
+            { type: "list", items: [
+              "pwd takes no arguments and simply prints the full absolute path of your current directory",
+              "cd with no argument returns you to your home directory",
+              "cd - switches to whatever directory you were in previously",
+              "ls -a shows hidden files whose names start with a dot (.bashrc, .ssh)",
+              "ls -R lists contents recursively through all subdirectories",
+            ] },
+            { type: "alert", variant: "info", content: "Hidden files in Linux are simply files whose names begin with a dot (.). They are not shown by ls unless you add the -a flag. Common hidden files include .bashrc, .profile, and the .ssh directory." },
+          ],
+          challenges: [
+            {
+              id: "ch-linux-nav-1", type: "multiple-choice", difficulty: "Beginner", xpReward: 20,
+              question: "Which command prints the full path of your current working directory?",
+              options: ["ls", "cd", "pwd", "whoami"], correctAnswer: "pwd",
+              explanation: "pwd stands for 'print working directory' and outputs the absolute path of the directory you are currently in.",
+            },
+            {
+              id: "ch-linux-nav-2", type: "multiple-choice", difficulty: "Beginner", xpReward: 20,
+              question: "What does the command 'ls -la' do?",
+              options: [
+                "Lists only directories in the current folder",
+                "Lists all files including hidden files in long format",
+                "Lists files sorted by size",
+                "Lists files in a tree view",
+              ], correctAnswer: "Lists all files including hidden files in long format",
+              explanation: "The -l flag enables long listing format showing permissions, owner, size, and date. The -a flag includes hidden files (those starting with a dot). Combined as -la, you get a detailed view of all files.",
+            },
+            {
+              id: "ch-linux-nav-3", type: "true-false", difficulty: "Beginner", xpReward: 15,
+              question: "Running 'cd' with no arguments will take you to the root directory /.",
+              options: ["True", "False"], correctAnswer: "False",
+              explanation: "Running cd with no arguments takes you to your home directory (e.g., /home/alice), not the root directory. To go to the root directory, you would run 'cd /'.",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: "sec-file-operations",
+      title: "File Operations",
+      lessons: [
+        {
+          id: "lesson-linux-viewing-files",
+          title: "Viewing and Creating Files",
+          order: 4,
+          content: [
+            { type: "heading", content: "Reading and Creating Files from the Command Line" },
+            { type: "text", content: "Linux provides several utilities for viewing file contents and creating new files and directories. The most common tools for reading files are cat (for short files), less (for longer files that need scrolling), and head/tail (for viewing the beginning or end of a file)." },
+            { type: "code", language: "bash", content: "# cat - Display the entire contents of a file\ncat /etc/hostname\n\n# less - View a file with scrolling (press q to quit)\nless /var/log/syslog\n\n# head / tail - View the first or last lines of a file\nhead -n 20 /var/log/auth.log    # first 20 lines\ntail -n 50 /var/log/auth.log    # last 50 lines\ntail -f /var/log/syslog          # follow new lines in real time\n\n# touch - Create an empty file or update timestamps\ntouch notes.txt\n\n# mkdir - Create directories\nmkdir projects\nmkdir -p projects/webapp/src    # create parent directories as needed" },
+            { type: "list", items: [
+              "cat concatenates and prints files; best for short files",
+              "less opens a file in a scrollable pager; navigate with arrow keys, search with /",
+              "head -n N shows the first N lines; defaults to 10 if -n is omitted",
+              "tail -f follows a file in real time, invaluable for monitoring live logs",
+              "touch creates an empty file if it does not exist, or updates its timestamp if it does",
+              "mkdir -p creates the full directory path, including any missing parent directories",
+            ] },
+            { type: "alert", variant: "info", content: "The 'tail -f' command is one of the most useful tools for security analysts. It lets you watch log files in real time as new events are appended, making it ideal for monitoring system activity." },
+          ],
+          challenges: [
+            {
+              id: "ch-linux-view-1", type: "multiple-choice", difficulty: "Beginner", xpReward: 20,
+              question: "Which command would you use to follow a log file in real time, watching new entries as they appear?",
+              options: ["cat -f /var/log/syslog", "tail -f /var/log/syslog", "less -f /var/log/syslog", "head -f /var/log/syslog"], correctAnswer: "tail -f /var/log/syslog",
+              explanation: "The tail command with the -f (follow) flag continuously monitors a file and displays new lines as they are appended. This is the standard way to watch live log output.",
+            },
+            {
+              id: "ch-linux-view-2", type: "multiple-choice", difficulty: "Beginner", xpReward: 20,
+              question: "What does 'mkdir -p /opt/app/data/logs' do?",
+              options: [
+                "Creates only the logs directory and fails if parents do not exist",
+                "Creates the entire directory path, creating any missing parent directories",
+                "Creates the directory with special permissions",
+                "Prints the directory structure without creating anything",
+              ], correctAnswer: "Creates the entire directory path, creating any missing parent directories",
+              explanation: "The -p flag tells mkdir to create parent directories as needed. Without -p, mkdir would fail if /opt/app/data did not already exist.",
+            },
+            {
+              id: "ch-linux-view-3", type: "true-false", difficulty: "Beginner", xpReward: 15,
+              question: "The touch command can only be used to create new files and cannot be used on files that already exist.",
+              options: ["True", "False"], correctAnswer: "False",
+              explanation: "If the file already exists, touch updates its access and modification timestamps to the current time without altering its contents. If the file does not exist, touch creates a new empty file.",
+            },
+          ],
+        },
+        {
+          id: "lesson-linux-permissions",
+          title: "File Permissions Basics",
+          order: 5,
+          content: [
+            { type: "heading", content: "Understanding Linux File Permissions" },
+            { type: "text", content: "Every file and directory in Linux has an owner, a group, and a set of permissions that control who can read, write, or execute it. Permissions are displayed in the first column of ls -l output and consist of three sets of three characters: one set for the owner (user), one for the group, and one for everyone else (others)." },
+            { type: "code", language: "bash", content: "$ ls -l script.sh\n-rwxr-xr-- 1 alice developers 2048 Jan 15 09:30 script.sh\n\n# Breaking down -rwxr-xr--\n# -    = file type (- for file, d for directory, l for link)\n# rwx  = owner (alice) can read, write, and execute\n# r-x  = group (developers) can read and execute, but not write\n# r--  = others can only read\n\n# Permission letters:\n# r = read    (value 4)\n# w = write   (value 2)\n# x = execute (value 1)\n# - = no permission (value 0)" },
+            { type: "text", content: "Each permission has a numeric (octal) value: read is 4, write is 2, and execute is 1. You add these values together for each group. For example, rwx = 4+2+1 = 7, r-x = 4+0+1 = 5, and r-- = 4+0+0 = 4. So the permissions rwxr-xr-- translate to the octal number 754." },
+            { type: "list", items: [
+              "Read (r/4): View file contents or list directory entries",
+              "Write (w/2): Modify a file or add/remove files in a directory",
+              "Execute (x/1): Run a file as a program or enter (cd into) a directory",
+              "Common permission sets: 755 (rwxr-xr-x), 644 (rw-r--r--), 700 (rwx------)",
+            ] },
+            { type: "alert", variant: "warning", content: "Setting a file to 777 (rwxrwxrwx) gives everyone full control. This is a serious security risk and should almost never be done, especially on scripts or configuration files." },
+          ],
+          challenges: [
+            {
+              id: "ch-linux-perms-1", type: "multiple-choice", difficulty: "Beginner", xpReward: 25,
+              question: "In the permission string rwxr-x---, what can the group do?",
+              options: [
+                "Read, write, and execute",
+                "Read and execute only",
+                "Read only",
+                "No access at all",
+              ], correctAnswer: "Read and execute only",
+              explanation: "The permission string is split into three groups of three: rwx (owner), r-x (group), --- (others). The group has r (read) and x (execute) but no w (write), so they can read and execute only.",
+            },
+            {
+              id: "ch-linux-perms-2", type: "multiple-choice", difficulty: "Beginner", xpReward: 25,
+              question: "What is the octal numeric representation of the permission rw-r--r--?",
+              options: ["644", "755", "664", "744"], correctAnswer: "644",
+              explanation: "Owner rw- = 4+2+0 = 6. Group r-- = 4+0+0 = 4. Others r-- = 4+0+0 = 4. Combined: 644. This is the default permission for many regular files.",
+            },
+            {
+              id: "ch-linux-perms-3", type: "true-false", difficulty: "Beginner", xpReward: 20,
+              question: "The execute permission on a directory allows you to cd into that directory.",
+              options: ["True", "False"], correctAnswer: "True",
+              explanation: "For directories, the execute (x) permission controls the ability to enter the directory with cd and access files within it. Without execute permission on a directory, you cannot traverse into it even if you have read permission.",
+            },
+          ],
+        },
+        {
+          id: "lesson-linux-chmod",
+          title: "Changing Permissions with chmod",
+          order: 6,
+          content: [
+            { type: "heading", content: "Using chmod to Manage Permissions" },
+            { type: "text", content: "The chmod command changes the permissions of files and directories. You can use it in two ways: symbolic mode, which uses letters (u, g, o, a) and operators (+, -, =), or numeric (octal) mode, which uses three-digit numbers." },
+            { type: "code", language: "bash", content: "# Symbolic mode\nchmod u+x script.sh          # add execute permission for the owner\nchmod g-w config.txt         # remove write permission from the group\nchmod o=r file.txt           # set others to read-only (exactly r--)\nchmod a+r public.html        # add read permission for all (user, group, others)\nchmod u+x,g+r,o-rwx app.sh  # combine multiple changes\n\n# Numeric (octal) mode\nchmod 755 deploy.sh          # rwxr-xr-x - owner full, group/others read+execute\nchmod 644 index.html         # rw-r--r-- - owner read+write, others read-only\nchmod 700 private_key        # rwx------ - owner only, no access for anyone else\nchmod 600 secret.conf        # rw------- - owner read+write, no one else\n\n# Recursive - apply to directory and all contents\nchmod -R 750 /opt/myapp      # apply 750 to directory and everything inside it" },
+            { type: "list", items: [
+              "u = user (owner), g = group, o = others, a = all three",
+              "+ adds a permission, - removes a permission, = sets the exact permission",
+              "chmod -R applies changes recursively to all files and subdirectories",
+              "Only the file owner or root can change a file's permissions",
+            ] },
+            { type: "alert", variant: "danger", content: "Be very careful with 'chmod -R' on system directories. Running 'chmod -R 777 /' would make every file on the system world-writable, completely destroying the security model and potentially breaking the system." },
+          ],
+          challenges: [
+            {
+              id: "ch-linux-chmod-1", type: "multiple-choice", difficulty: "Beginner", xpReward: 25,
+              question: "Which command gives the owner execute permission on a file called backup.sh?",
+              options: ["chmod x+u backup.sh", "chmod u+x backup.sh", "chmod +x backup.sh owner", "chmod o+x backup.sh"], correctAnswer: "chmod u+x backup.sh",
+              explanation: "In symbolic mode, u refers to the user (owner), and +x adds execute permission. So chmod u+x backup.sh adds execute permission for the owner.",
+            },
+            {
+              id: "ch-linux-chmod-2", type: "multiple-choice", difficulty: "Beginner", xpReward: 25,
+              question: "What permissions does chmod 600 set on a file?",
+              options: [
+                "Owner can read and write; group and others have no access",
+                "Owner can read, write, and execute; group and others can read",
+                "Everyone can read and write",
+                "Owner can read only; group can read and write",
+              ], correctAnswer: "Owner can read and write; group and others have no access",
+              explanation: "600 breaks down as 6 (rw-) for the owner, 0 (---) for the group, and 0 (---) for others. This means only the owner can read and write the file. This is commonly used for SSH private keys and sensitive configuration files.",
+            },
+            {
+              id: "ch-linux-chmod-3", type: "true-false", difficulty: "Beginner", xpReward: 20,
+              question: "Any user on the system can use chmod to change the permissions of any file.",
+              options: ["True", "False"], correctAnswer: "False",
+              explanation: "Only the file's owner or the root (superuser) account can change a file's permissions. Regular users cannot modify permissions on files they do not own.",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: "sec-processes",
+      title: "Processes and System Info",
+      lessons: [
+        {
+          id: "lesson-linux-processes",
+          title: "Managing Processes with ps and top",
+          order: 7,
+          content: [
+            { type: "heading", content: "Viewing and Understanding Linux Processes" },
+            { type: "text", content: "Every running program on a Linux system is a process with a unique process ID (PID). Understanding how to view and manage processes is essential for system administration and security analysis. The two primary tools are ps (process snapshot) and top (real-time process monitor)." },
+            { type: "code", language: "bash", content: "# ps - Display a snapshot of current processes\nps                    # show processes for the current terminal\nps aux                # show all processes for all users with details\nps -ef                # full-format listing of all processes\nps aux | grep nginx   # find processes matching 'nginx'\n\n# Understanding ps aux output columns:\n# USER  PID  %CPU  %MEM  VSZ   RSS  TTY  STAT  START  TIME  COMMAND\n# root   1    0.0   0.1  1234  5678  ?    Ss    Jan01  0:05  /sbin/init\n\n# top - Real-time process monitor (press q to quit)\ntop                   # interactive view, updates every few seconds\ntop -u alice          # show only processes for user alice\n\n# kill - Terminate a process by PID\nkill 1234             # send SIGTERM (graceful shutdown) to PID 1234\nkill -9 1234          # send SIGKILL (force kill) to PID 1234" },
+            { type: "list", items: [
+              "PID: unique numeric identifier for each process",
+              "PPID: parent process ID, the process that spawned this one",
+              "STAT: process state - S (sleeping), R (running), Z (zombie), T (stopped)",
+              "ps aux shows all processes; ps -ef shows the parent-child hierarchy",
+              "top provides a live updating view sorted by CPU usage by default",
+            ] },
+            { type: "alert", variant: "warning", content: "Use 'kill -9' (SIGKILL) only as a last resort. It forcefully terminates a process without allowing it to clean up, which can lead to data corruption or orphaned resources. Always try a normal 'kill' (SIGTERM) first." },
+          ],
+          challenges: [
+            {
+              id: "ch-linux-proc-1", type: "multiple-choice", difficulty: "Beginner", xpReward: 25,
+              question: "Which command shows a real-time, continuously updating view of running processes?",
+              options: ["ps aux", "top", "ls -l /proc", "jobs"], correctAnswer: "top",
+              explanation: "The top command provides a dynamic, real-time view of running processes, refreshing every few seconds. It shows CPU usage, memory consumption, and other stats. ps only takes a one-time snapshot.",
+            },
+            {
+              id: "ch-linux-proc-2", type: "multiple-choice", difficulty: "Beginner", xpReward: 25,
+              question: "What signal does 'kill -9' send to a process?",
+              options: ["SIGTERM", "SIGSTOP", "SIGKILL", "SIGHUP"], correctAnswer: "SIGKILL",
+              explanation: "The -9 flag sends SIGKILL, which immediately terminates the process without giving it a chance to clean up. The default signal (without -9) is SIGTERM, which asks the process to shut down gracefully.",
+            },
+            {
+              id: "ch-linux-proc-3", type: "true-false", difficulty: "Beginner", xpReward: 20,
+              question: "The ps command provides a live, continuously updating view of system processes.",
+              options: ["True", "False"], correctAnswer: "False",
+              explanation: "ps provides a static snapshot of processes at the moment it is run. For a live, continuously updating view, you would use top or htop instead.",
+            },
+          ],
+        },
+        {
+          id: "lesson-linux-sysinfo",
+          title: "System Information: whoami, id, and More",
+          order: 8,
+          content: [
+            { type: "heading", content: "Identifying Users and Gathering System Information" },
+            { type: "text", content: "When you connect to a Linux machine, the first thing you should do is establish who you are and what privileges you have. Several commands provide identity and system information that are critical for both system administration and security assessments." },
+            { type: "code", language: "bash", content: "# whoami - Display the current username\n$ whoami\nalice\n\n# id - Show user ID, group ID, and all group memberships\n$ id\nuid=1001(alice) gid=1001(alice) groups=1001(alice),27(sudo),1002(developers)\n\n# hostname - Display the system's hostname\n$ hostname\nwebserver-01\n\n# uname -a - Display detailed system/kernel information\n$ uname -a\nLinux webserver-01 5.15.0-91-generic #101-Ubuntu SMP x86_64 GNU/Linux\n\n# uptime - Show how long the system has been running\n$ uptime\n 14:23:07 up 45 days, 3:12, 2 users, load average: 0.15, 0.10, 0.05" },
+            { type: "list", items: [
+              "whoami returns just the username of the current session",
+              "id shows your numeric UID, GID, and all group memberships - essential for privilege checking",
+              "A user in the sudo or wheel group can run commands as root with sudo",
+              "uname -a reveals the kernel version, architecture, and OS, useful for identifying potential kernel exploits",
+              "uptime shows system uptime and load averages over the last 1, 5, and 15 minutes",
+            ] },
+            { type: "alert", variant: "info", content: "During a penetration test, running 'id' is often one of the first commands executed after gaining shell access. It immediately tells you whether you have root access (uid=0) or which groups you belong to, revealing potential privilege escalation paths." },
+          ],
+          challenges: [
+            {
+              id: "ch-linux-sysinfo-1", type: "multiple-choice", difficulty: "Beginner", xpReward: 20,
+              question: "Which command shows your numeric user ID, group ID, and all group memberships?",
+              options: ["whoami", "id", "groups", "passwd"], correctAnswer: "id",
+              explanation: "The id command outputs the uid (user ID), gid (primary group ID), and all group memberships. whoami only shows the username. groups shows group names but not the numeric IDs.",
+            },
+            {
+              id: "ch-linux-sysinfo-2", type: "multiple-choice", difficulty: "Beginner", xpReward: 20,
+              question: "If the output of 'id' shows uid=0, what does that indicate?",
+              options: [
+                "The user account is disabled",
+                "The user is logged in as the root superuser",
+                "The user has no group memberships",
+                "The user is a guest account",
+              ], correctAnswer: "The user is logged in as the root superuser",
+              explanation: "UID 0 is always reserved for the root user, the superuser with full administrative privileges on the system. Any account with uid=0 has unrestricted access to the entire system.",
+            },
+            {
+              id: "ch-linux-sysinfo-3", type: "true-false", difficulty: "Beginner", xpReward: 15,
+              question: "The 'uname -a' command displays detailed information about the Linux kernel and system architecture.",
+              options: ["True", "False"], correctAnswer: "True",
+              explanation: "uname -a prints all available system information, including the kernel name, hostname, kernel version, machine hardware architecture, and operating system. This is valuable for identifying the exact OS and kernel in use.",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: "sec-logs-analysis",
+      title: "Logs and Analysis",
+      lessons: [
+        {
+          id: "lesson-linux-logs",
+          title: "Reading and Understanding Linux Logs",
+          order: 9,
+          content: [
+            { type: "heading", content: "Linux Log Files and Their Locations" },
+            { type: "text", content: "Linux systems maintain extensive logs that record system events, authentication attempts, service activity, and errors. These logs are primarily stored in /var/log and are essential for troubleshooting, security monitoring, and forensic analysis. Most log files are plain text and can be read with standard command-line tools." },
+            { type: "list", items: [
+              "/var/log/syslog or /var/log/messages - General system activity and service messages",
+              "/var/log/auth.log or /var/log/secure - Authentication events: logins, sudo usage, SSH access",
+              "/var/log/kern.log - Kernel messages including hardware and driver events",
+              "/var/log/dpkg.log or /var/log/yum.log - Package installation and update history",
+              "/var/log/apache2/ or /var/log/nginx/ - Web server access and error logs",
+              "/var/log/lastlog - Records of the last login for each user (read with lastlog command)",
+            ] },
+            { type: "code", language: "bash", content: "# View recent authentication log entries\ntail -n 100 /var/log/auth.log\n\n# Watch authentication events in real time\ntail -f /var/log/auth.log\n\n# Search for failed SSH login attempts\ngrep \"Failed password\" /var/log/auth.log\n\n# Check recent system messages\nless /var/log/syslog\n\n# View logs from systemd journal (modern systems)\njournalctl -u sshd --since \"1 hour ago\"\njournalctl -xe     # show recent errors with explanations" },
+            { type: "alert", variant: "warning", content: "Many log files require root or sudo access to read. If you get 'Permission denied' when trying to read a log file, try prefixing the command with sudo." },
+          ],
+          challenges: [
+            {
+              id: "ch-linux-logs-1", type: "multiple-choice", difficulty: "Beginner", xpReward: 25,
+              question: "Which log file records authentication events such as login attempts and sudo usage on Debian/Ubuntu systems?",
+              options: ["/var/log/syslog", "/var/log/auth.log", "/var/log/kern.log", "/var/log/boot.log"], correctAnswer: "/var/log/auth.log",
+              explanation: "/var/log/auth.log (on Debian/Ubuntu) or /var/log/secure (on RHEL/CentOS) records all authentication-related events including successful and failed logins, SSH connections, and sudo command usage.",
+            },
+            {
+              id: "ch-linux-logs-2", type: "multiple-choice", difficulty: "Beginner", xpReward: 25,
+              question: "Which command would you use to view the last 50 lines of the system log?",
+              options: ["head -n 50 /var/log/syslog", "tail -n 50 /var/log/syslog", "cat -n 50 /var/log/syslog", "less -n 50 /var/log/syslog"], correctAnswer: "tail -n 50 /var/log/syslog",
+              explanation: "tail -n 50 displays the last 50 lines of a file. Since new log entries are appended to the end of the file, tail is the ideal tool for viewing the most recent log activity.",
+            },
+            {
+              id: "ch-linux-logs-3", type: "true-false", difficulty: "Beginner", xpReward: 20,
+              question: "All Linux log files in /var/log can be read by any user without special permissions.",
+              options: ["True", "False"], correctAnswer: "False",
+              explanation: "Many log files in /var/log, particularly security-sensitive ones like auth.log, are only readable by root or members of specific groups like adm. You typically need sudo to access these files.",
+            },
+          ],
+        },
+        {
+          id: "lesson-linux-grep",
+          title: "Searching and Filtering with grep",
+          order: 10,
+          content: [
+            { type: "heading", content: "Mastering grep for Log Analysis and Text Searching" },
+            { type: "text", content: "The grep command is one of the most powerful tools in the Linux toolbox. It searches files or input for lines matching a pattern and prints them. For security analysts, grep is indispensable for filtering log files, searching configuration files for misconfigurations, and finding specific patterns in large datasets." },
+            { type: "code", language: "bash", content: "# Basic grep usage\ngrep \"error\" /var/log/syslog          # find lines containing 'error'\ngrep -i \"error\" /var/log/syslog       # case-insensitive search\ngrep -n \"error\" /var/log/syslog       # show line numbers\ngrep -c \"Failed password\" /var/log/auth.log   # count matching lines\n\n# Inverted and contextual search\ngrep -v \"INFO\" app.log                # show lines NOT containing 'INFO'\ngrep -A 3 \"CRITICAL\" app.log          # show 3 lines after each match\ngrep -B 2 \"error\" app.log             # show 2 lines before each match\ngrep -C 5 \"segfault\" /var/log/kern.log  # show 5 lines of context around match\n\n# Recursive search and regex\ngrep -r \"password\" /etc/              # search recursively in all files under /etc\ngrep -E \"[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\" access.log  # find IP addresses\n\n# Piping output through grep\nps aux | grep apache          # find apache processes\ncat /etc/passwd | grep \"/bin/bash\"   # find users with bash shell" },
+            { type: "list", items: [
+              "-i: case-insensitive matching",
+              "-n: display line numbers alongside matching lines",
+              "-c: print only the count of matching lines",
+              "-v: invert the match, showing lines that do NOT contain the pattern",
+              "-r: search recursively through all files in a directory",
+              "-A N / -B N / -C N: show N lines after / before / around each match",
+              "-E: use extended regular expressions for advanced pattern matching",
+            ] },
+            { type: "text", content: "Combining grep with pipes is extremely powerful. You can chain commands together: use cat, tail, or journalctl to produce output, then pipe it through one or more grep filters to narrow down exactly what you need." },
+            { type: "alert", variant: "info", content: "For faster searching in very large files or directory trees, consider using 'grep -F' for fixed-string matching (no regex) or modern alternatives like 'ripgrep' (rg) which is significantly faster on large codebases." },
+          ],
+          challenges: [
+            {
+              id: "ch-linux-grep-1", type: "multiple-choice", difficulty: "Beginner", xpReward: 25,
+              question: "Which grep flag makes the search case-insensitive?",
+              options: ["-v", "-i", "-c", "-n"], correctAnswer: "-i",
+              explanation: "The -i flag tells grep to ignore case distinctions, so 'Error', 'ERROR', and 'error' would all match the pattern 'error'.",
+            },
+            {
+              id: "ch-linux-grep-2", type: "multiple-choice", difficulty: "Beginner", xpReward: 25,
+              question: "How would you search for all lines that do NOT contain the word 'DEBUG' in a log file?",
+              options: [
+                "grep 'DEBUG' app.log",
+                "grep -v 'DEBUG' app.log",
+                "grep -n 'DEBUG' app.log",
+                "grep -c 'DEBUG' app.log",
+              ], correctAnswer: "grep -v 'DEBUG' app.log",
+              explanation: "The -v flag inverts the match, so grep -v 'DEBUG' outputs every line that does not contain the string 'DEBUG'. This is useful for filtering out noisy log levels to focus on warnings and errors.",
+            },
+            {
+              id: "ch-linux-grep-3", type: "true-false", difficulty: "Beginner", xpReward: 20,
+              question: "The command 'grep -r \"password\" /etc/' will search for the word 'password' in all files within the /etc directory and its subdirectories.",
+              options: ["True", "False"], correctAnswer: "True",
+              explanation: "The -r (recursive) flag tells grep to search through all files in the specified directory and all of its subdirectories. This is commonly used to audit configuration files for sensitive values.",
+            },
+          ],
+        },
+      ],
+    },
+  ],
+};
