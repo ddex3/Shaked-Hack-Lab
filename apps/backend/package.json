@@ -8,6 +8,7 @@
     "start": "node dist/server.js"
   },
   "dependencies": {
+    "@shaked-hack-lab/shared-types": "*",
     "@prisma/client": "^6.3.0",
     "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.7",
