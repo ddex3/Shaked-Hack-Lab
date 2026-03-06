@@ -8,9 +8,11 @@
   "scripts": {
     "dev:frontend": "npm run dev --workspace=apps/frontend",
     "dev:backend": "npm run dev --workspace=apps/backend",
+    "build": "npx prisma generate --schema=prisma/schema.prisma && npm run build:shared && npm run build:backend",
     "build:frontend": "npm run build --workspace=apps/frontend",
     "build:backend": "npm run build --workspace=apps/backend",
     "build:shared": "npm run build --workspace=packages/shared-types",
+    "postinstall": "npx prisma generate --schema=prisma/schema.prisma",
     "db:generate": "npx prisma generate --schema=prisma/schema.prisma",
     "db:migrate": "npx prisma migrate dev --schema=prisma/schema.prisma",
     "db:push": "npx prisma db push --schema=prisma/schema.prisma",
